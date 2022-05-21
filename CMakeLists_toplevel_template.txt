@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.13)
+
+set( PICO_SDK_PATH !!**SDK_PATH**!! )
+
+include(pico_sdk_import.cmake)
+
+project( !!**PROJECT_NAME**!! )
+
+set( CMAKE_C_STANDARD )
+set( CMAKE_CXX_STANDARD )
+
+pico_sdk_init()
+
+include_directories( ./inc )
+add_subdirectory( ./src )
