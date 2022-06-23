@@ -78,30 +78,43 @@ try:
     os.mkdir( os.path.join( project_dir, "build" ) )
     os.mkdir( os.path.join( project_dir, "inc" ) )
     os.mkdir( os.path.join( project_dir, "src" ) )
+    os.mkdir( os.path.join( project_dir, "output" ) )
+    os.mkdir( os.path.join( project_dir, ".vscode" ) )
 
     print()
     print( "Creating CMakeLists.txt files..." )
 
     # Creating the top-level cmake file
-    with open( os.path.join( CURRENT_DIRECTORY, "CMakeLists_toplevel_template.txt") ) as cmake_template_file:
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "CMakeLists_toplevel_template.txt") ) as cmake_template_file:
         with open( os.path.join( project_dir, "CMakeLists.txt") , "w" ) as dest_file:
             dest_file.write( cmake_template_file.read().replace( "!!**PROJECT_NAME**!!", project_name ).replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
 
     # Creating inner cmake file
-    with open( os.path.join( CURRENT_DIRECTORY, "CMakeLists_src_template.txt") ) as cmake_template_file:
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "CMakeLists_src_template.txt") ) as cmake_template_file:
         with open( os.path.join( project_dir, "src", "CMakeLists.txt" ) , "w" ) as dest_file:
             dest_file.write( cmake_template_file.read() )
 
     print()
     print( "Creating source files..." )
 
-    with open( os.path.join( CURRENT_DIRECTORY, "main.c" ) ) as main_source_file:
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "main.c" ) ) as main_source_file:
         with open( os.path.join( project_dir, "src", "main.c" ), "w" ) as dest_file:
             dest_file.write( main_source_file.read() )
 
-    with open( os.path.join( CURRENT_DIRECTORY, "main.h") ) as main_header_file:
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "main.h") ) as main_header_file:
         with open( os.path.join( project_dir, "inc", "main.h" ), "w" ) as dest_file:
             dest_file.write( main_header_file.read() )
+
+    print()
+    print( "Creating build scripts..." )
+
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "build_fresh.py" ) ) as build_script:
+        with open( os.path.join( project_dir, "build_fresh.py" ), "w" ) as dest_file:
+            dest_file.write( build_script.read().replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
+    
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "build.py" ) ) as build_script:
+        with open( os.path.join( project_dir, "build.py" ), "w" ) as dest_file:
+            dest_file.write( build_script.read().replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
 
     print()
     print( "Done, happy building!!")
