@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-set( PICO_SDK_PATH !!**SDK_PATH**!! )
-
 include(pico_sdk_import.cmake)
 
 project( !!**PROJECT_NAME**!! )

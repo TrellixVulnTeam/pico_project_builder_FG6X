@@ -1,0 +1,65 @@
+{
+    "toolchain" : {
+        "windows" : "https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-mingw-w64-i686-arm-none-eabi.zip",
+        "linux" : "https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-aarch64-arm-none-eabi.tar.xz",
+        "darwin" : "https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-darwin-x86_64-arm-none-eabi.tar.xz"
+    },
+
+    "files" :
+    [
+        {
+            "template_name" : "build_fresh.py",
+            "dest_name" : "build_fresh.py", 
+            "edit" : [
+                [ "!!**TOOL**!!", "toolchain" ]
+            ]
+        },
+
+        {
+            "template_name" : "build.py",
+            "dest_name" : "build.py",
+            "edit" : [
+                [ "!!**TOOL**!!", "toolchain" ]
+            ]
+        },
+
+        {
+            "template_name" : "CMakeLists_toplevel_template.txt",
+            "dest_name" : "CMakeLists.txt",
+            "edit" : 
+            [
+                [ "!!**PROJECT_NAME**!!", "project_name" ]
+            ]
+        },
+
+        {
+            "template_name" : "CMakeLists_src_template.txt",
+            "dest_name" : "src/CMakeLists.txt",
+            "edit" : []
+        },
+
+        {
+            "template_name" : "main.c",
+            "dest_name" : "src/main.c",
+            "edit" : []
+        },
+
+        {
+            "template_name" : "main.h",
+            "dest_name" : "inc/main.h",
+            "edit" : []
+        },
+
+        {
+            "template_name" : ".gitignore",
+            "dest_name" : ".gitignore",
+            "edit" : []
+        },
+
+        {
+            "template_name" : ".gitmodules",
+            "dest_name" : ".gitmodules",
+            "edit" : []
+        }
+    ]
+}

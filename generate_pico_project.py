@@ -1,12 +1,14 @@
 """
 This script is used to initialize the project for development
 """
-import os, time
+import os, time, json, requests, platform
 
 # LINK TO PICO SDK REPOSITORY
 PICO_SDK_LINK = "https://github.com/raspberrypi/pico-sdk.git"
 # LINK TO PICO GUIDE REPOSITORY
 PICO_GUIDE_LINK = "https://github.com/parmAshu/pico-guide.git"
+# GET THE SYSTEM
+SYSTEM_OS = platform.system()
 
 ACCEPTED_AFFIRMATIVE_RESPONSES = [ "Y", "y", "yes" ]
 
@@ -27,99 +29,119 @@ def affirmative( resp ):
 
 try:
         
-    print( "WELCOME TO PICO DEMO APP ..." )
+    print( "WELCOME TO PICO APP BUILDER..." )
 
     # Get the current working directory
     CURRENT_DIRECTORY = os.getcwd()
 
+    # Get the location for project
     while True:
         print()
         print("Please provide the working directory: ")
         WORKING_DIRECTORY = input()
         if affirmative( input( "Are you sure ? (Y/N) : " ) ):
             break
-
     if os.path.exists( WORKING_DIRECTORY ) == False:
         print( "Invalid working directory!" )
         raise Exception
 
+    # Get the project name
     project_name = ""
     while True:
         project_name = input( "What do you want to call your project ? " )
         if affirmative( input( "Are you sure ? (Y/N) : " ) ):
             break
 
+    # Creating the project directory and navigating to it
     print( "Creating project directory : " )
     print( project_name )
-
     project_dir = os.path.join( WORKING_DIRECTORY , project_name )
-    
     os.mkdir( project_dir )
     os.chdir( project_dir )
 
+    # Parsing the guide
+    guide_string = ""
+    with open( os.path.join( CURRENT_DIRECTORY, "template", "guide.json" ) ) as guide_file:
+        guide_string = guide_file.read()
+    guide_obj = json.loads( guide_string )
+
+    # Obtaining the toolchain links
+    TOOLCHAIN_LINK_MAC = guide_obj["toolchain"]["darwin"]
+    TOOLCHAIN_LINK_LIN = guide_obj["toolchain"]["linux"]
+    TOOLCHAIN_LINK_WIN = guide_obj["toolchain"]["windows"]
+
+    # Download the toolchain and extract it within the project directory
     print()
-    print( "Cloning the required repositories in the project directory ..." )
+    print( "Downloading the toolchain" )
+    download_file_name = ""
+    download_link = ""
+    extract_command = ""
+    if "Win" in SYSTEM_OS:
+        download_link = TOOLCHAIN_LINK_WIN
+        download_file_name = TOOLCHAIN_LINK_WIN.split( "/" )[-1]
+        extract_command = "Expand-Archive -LiteralPath " + download_file_name + " -DestinationPath " + download_file_name
+    elif "Lin" in SYSTEM_OS:
+        download_link = TOOLCHAIN_LINK_LIN
+        download_file_name = TOOLCHAIN_LINK_LIN.split( "/" )[-1]
+        extract_command = "tar -xvf " + download_file_name
+    elif "Dar" in SYSTEM_OS:
+        download_link = TOOLCHAIN_LINK_MAC
+        download_file_name = TOOLCHAIN_LINK_MAC.split( "/" )[-1]
+        extract_command = "tar -xvf " + download_file_name
+    response = requests.get( download_link )
+    with open( os.path.join( project_dir, download_file_name ), "wb" ) as dest_file:
+        dest_file.write( response.content )
+    os.system( extract_command )
+    TOOL_DIR = ""
+    for item in os.listdir( project_dir ):
+        if "arm" in item:
+            TOOL_DIR = item
+    os.remove( os.path.join( project_dir, download_file_name ) )
 
+    # Cloning the PICO SDK
+    print()
+    print( "Getting the SDK..." )
     os.system( "git clone " + PICO_SDK_LINK )
-    os.system( "git clone " + PICO_GUIDE_LINK )
 
+    # Create the CMake files
     print()
     print( "Copying the cmake file from sdk..." )
-
-    # Copy the import SDK file 
     with open( os.path.join( project_dir, "pico-sdk", "external", "pico_sdk_import.cmake" ) ) as cmake_file:
         with open( os.path.join( project_dir, "pico_sdk_import.cmake" ), "w" ) as dest_file:
             dest_file.write( cmake_file.read() )
     
+    # Creating the project structure 
     print()
     print( "Creating sub-directories..." )
-
-    # Creating other required directories
     os.mkdir( os.path.join( project_dir, "build" ) )
     os.mkdir( os.path.join( project_dir, "inc" ) )
     os.mkdir( os.path.join( project_dir, "src" ) )
     os.mkdir( os.path.join( project_dir, "output" ) )
-    os.mkdir( os.path.join( project_dir, ".vscode" ) )
+    for obj in guide_obj[ "files" ]:
+        source_file_name = obj[ "template_name" ]
+        dest_file_name = obj[ "dest_name" ]
+        source_file = open( os.path.join( CURRENT_DIRECTORY, "template", source_file_name ) )
+        dest_file = open( os.path.join( project_dir, dest_file_name ), "w" )
+        
+        source_string = source_file.read()
+        for edit in obj["edit"]:
+            edit_value = ""
+            if edit[1] == "pico_sdk_path":
+                edit_value = os.path.join( project_dir, "pico-sdk" )
+            elif edit[1] == "project_name":
+                edit_value = project_name
+            elif edit[1] == "toolchain":
+                edit_value = TOOL_DIR
+            source_string = source_string.replace( edit[0], edit_value )
 
-    print()
-    print( "Creating CMakeLists.txt files..." )
-
-    # Creating the top-level cmake file
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "CMakeLists_toplevel_template.txt") ) as cmake_template_file:
-        with open( os.path.join( project_dir, "CMakeLists.txt") , "w" ) as dest_file:
-            dest_file.write( cmake_template_file.read().replace( "!!**PROJECT_NAME**!!", project_name ).replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
-
-    # Creating inner cmake file
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "CMakeLists_src_template.txt") ) as cmake_template_file:
-        with open( os.path.join( project_dir, "src", "CMakeLists.txt" ) , "w" ) as dest_file:
-            dest_file.write( cmake_template_file.read() )
-
-    print()
-    print( "Creating source files..." )
-
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "main.c" ) ) as main_source_file:
-        with open( os.path.join( project_dir, "src", "main.c" ), "w" ) as dest_file:
-            dest_file.write( main_source_file.read() )
-
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "main.h") ) as main_header_file:
-        with open( os.path.join( project_dir, "inc", "main.h" ), "w" ) as dest_file:
-            dest_file.write( main_header_file.read() )
-
-    print()
-    print( "Creating build scripts..." )
-
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "build_fresh.py" ) ) as build_script:
-        with open( os.path.join( project_dir, "build_fresh.py" ), "w" ) as dest_file:
-            dest_file.write( build_script.read().replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
-    
-    with open( os.path.join( CURRENT_DIRECTORY, "template", "build.py" ) ) as build_script:
-        with open( os.path.join( project_dir, "build.py" ), "w" ) as dest_file:
-            dest_file.write( build_script.read().replace( "!!**SDK_PATH**!!", os.path.join( project_dir, "pico-sdk" ) ) )
+        dest_file.write( source_string )
+        source_file.close()
+        dest_file.close()
 
     print()
     print( "Done, happy building!!")
 
 except Exception as e:
-    pass
-except:
+    raise e
+finally:
     print( "Bye!!")

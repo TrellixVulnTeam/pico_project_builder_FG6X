@@ -1,17 +1,21 @@
 import os, time, shutil
 
-from numpy import source
-
 # Get the project directory
 project_dir = os.getcwd()
+
+toolchain_path = os.path.join( project_dir, "!!**TOOL**!!", "bin" )
+if toolchain_path not in os.environ["PATH"]:
+    os.environ["PATH"] += os.pathsep + toolchain_path
 
 # Try to delete build directory
 try:
     shutil.rmtree( "build" )
+    shutil.rmtree( "output" )
 except:
     pass
 finally:
     os.mkdir( "build" )
+    os.mkdir( "output" )
 
 for fl in os.listdir( os.path.join( project_dir, "output" ) ):
     os.remove( os.path.join( project_dir, "output", fl ) )
@@ -19,7 +23,7 @@ for fl in os.listdir( os.path.join( project_dir, "output" ) ):
 os.chdir( os.path.join( project_dir, "build" ) )
 
 # Set the environment variable
-os.environ["PICO_SDK_PATH"] = "!!**PICO_SDK_PATH**!!"
+os.environ["PICO_SDK_PATH"] = os.path.join( project_dir, "pico-sdk" )
 
 # Build the project
 os.system( "cmake .." )
