@@ -1,5 +1,5 @@
 """
-This script is used to initialize the project for development
+This script creates a pico C/C++ project
 """
 import os, time, json, requests, platform
 
@@ -72,14 +72,14 @@ try:
 
     # Download the toolchain and extract it within the project directory
     print()
-    print( "Downloading the toolchain" )
+    print( "Downloading the toolchain; be patient, it takes time!" )
     download_file_name = ""
     download_link = ""
     extract_command = ""
     if "Win" in SYSTEM_OS:
         download_link = TOOLCHAIN_LINK_WIN
         download_file_name = TOOLCHAIN_LINK_WIN.split( "/" )[-1]
-        extract_command = "Expand-Archive -LiteralPath " + download_file_name + " -DestinationPath " + download_file_name
+        extract_command = "powershell.exe Expand-Archive -LiteralPath " + download_file_name + " -DestinationPath " + download_file_name.split(".")[0]
     elif "Lin" in SYSTEM_OS:
         download_link = TOOLCHAIN_LINK_LIN
         download_file_name = TOOLCHAIN_LINK_LIN.split( "/" )[-1]
