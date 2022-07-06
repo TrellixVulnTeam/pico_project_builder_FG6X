@@ -1,7 +1,8 @@
 """
 This script creates a pico C/C++ project
 """
-import os, time, json, requests, platform
+import os, time, json, requests, platform, progressbar
+from urllib import request
 
 # LINK TO PICO SDK REPOSITORY
 PICO_SDK_LINK = "https://github.com/raspberrypi/pico-sdk.git"
@@ -26,6 +27,22 @@ def affirmative( resp ):
         return True
     else:
         return False
+
+pbar = None
+
+def show_progress(block_num, block_size, total_size):
+
+    global pbar
+    if pbar is None:
+        pbar = progressbar.ProgressBar(maxval=total_size)
+        pbar.start()
+
+    downloaded = block_num * block_size
+    if downloaded < total_size:
+        pbar.update(downloaded)
+    else:
+        pbar.finish()
+        pbar = None
 
 try:
         
@@ -88,11 +105,7 @@ try:
         download_link = TOOLCHAIN_LINK_MAC
         download_file_name = TOOLCHAIN_LINK_MAC.split( "/" )[-1]
         extract_command = "tar -xvf " + download_file_name
-    resp = requests.get( download_link, stream=True )
-    with open( os.path.join( project_dir, download_file_name ), "wb" ) as dest_file:
-        for chunk in resp.iter_content(chunk_size=1024):
-            if chunk:
-                dest_file.write( chunk )
+    request.urlretrieve( download_link, download_file_name, show_progress )
     os.system( extract_command )
     TOOL_DIR = ""
     for item in os.listdir( project_dir ):
