@@ -88,9 +88,11 @@ try:
         download_link = TOOLCHAIN_LINK_MAC
         download_file_name = TOOLCHAIN_LINK_MAC.split( "/" )[-1]
         extract_command = "tar -xvf " + download_file_name
-    response = requests.get( download_link )
+    resp = requests.get( download_link, stream=True )
     with open( os.path.join( project_dir, download_file_name ), "wb" ) as dest_file:
-        dest_file.write( response.content )
+        for chunk in resp.iter_content(chunk_size=1024):
+            if chunk:
+                dest_file.write( chunk )
     os.system( extract_command )
     TOOL_DIR = ""
     for item in os.listdir( project_dir ):

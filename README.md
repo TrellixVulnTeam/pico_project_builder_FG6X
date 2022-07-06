@@ -29,3 +29,25 @@ python3 generate_pico_project.py
 ```
 
 That's it, you now have a basic pico project ready to be used for any kind of application development.
+
+## Project Directory Structure
+
+project_root_dir
+|
+|__inc : This directory contains all user header files
+|
+|__src : This directory contains all user source files
+|
+|__output : This directory contains all the build output files
+|
+|__build : This directory contains build files
+|
+|__gcc-arm.. : This directory contains the ARM toolchain to build the project
+
+## How to add source files to project ?
+
+1. Add the source file to **src** directory and the header file to **inc** directory.
+2. Open the file **src/CMakeLists.txt** and update the **add_executable(main main.c)** to **add_executable( main main.c new_source_file.c)**
+3. Now run **python3 build_fresh.py** from the project root directory.
+
+Note : Run the build_fresh once after you add or remove any source files.
