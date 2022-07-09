@@ -6,6 +6,7 @@ project_dir = os.getcwd()
 toolchain_path = os.path.join( project_dir, "!!**TOOL**!!", "bin" )
 if toolchain_path not in os.environ["PATH"]:
     os.environ["PATH"] += os.pathsep + toolchain_path
+    os.environ["PICO_TOOLCHAIN_PATH"] = toolchain_path
 
 # Try to delete build directory
 try:
@@ -25,9 +26,13 @@ os.chdir( os.path.join( project_dir, "build" ) )
 # Set the environment variable
 os.environ["PICO_SDK_PATH"] = os.path.join( project_dir, "pico-sdk" )
 
-# Build the project
-os.system( "cmake .." )
-os.system( "make" )
+if os.name != "nt":
+    # Build the project
+    os.system( "cmake .." )
+    os.system( "make" )
+else:
+    os.system( 'cmake -G "NMake Makefiles" ..')
+    os.system( "nmake")
 
 for fl in os.listdir( os.path.join( project_dir, "build", "src" ) ):
     if fl.endswith( ".elf") or fl.endswith( ".bin" ) or fl.endswith( ".uf2" ):

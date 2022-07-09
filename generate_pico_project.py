@@ -3,6 +3,8 @@ This script creates a pico C/C++ project
 """
 import os, time, json, requests, platform, progressbar
 from urllib import request
+from zipfile import ZipFile
+import tarfile
 
 # LINK TO PICO SDK REPOSITORY
 PICO_SDK_LINK = "https://github.com/raspberrypi/pico-sdk.git"
@@ -93,25 +95,35 @@ try:
     download_file_name = ""
     download_link = ""
     extract_command = ""
+    download_dir_name = ""
     if "Win" in SYSTEM_OS:
         download_link = TOOLCHAIN_LINK_WIN
         download_file_name = TOOLCHAIN_LINK_WIN.split( "/" )[-1]
-        extract_command = "powershell.exe Expand-Archive -LiteralPath " + download_file_name + " -DestinationPath " + download_file_name.split(".")[0]
+        download_dir_name = download_file_name[0:download_file_name.index( ".zip" )]
+        #extract_command = "powershell.exe Expand-Archive -LiteralPath " + download_file_name + " -DestinationPath " + download_file_name.split(".")[0]
     elif "Lin" in SYSTEM_OS:
         download_link = TOOLCHAIN_LINK_LIN
         download_file_name = TOOLCHAIN_LINK_LIN.split( "/" )[-1]
-        extract_command = "tar -xvf " + download_file_name
+        download_dir_name = download_file_name[0:download_file_name.index(".tar")]
+        #extract_command = "tar -xvf " + download_file_name
     elif "Dar" in SYSTEM_OS:
         download_link = TOOLCHAIN_LINK_MAC
         download_file_name = TOOLCHAIN_LINK_MAC.split( "/" )[-1]
-        extract_command = "tar -xvf " + download_file_name
+        download_dir_name = download_file_name[0:download_file_name.index(".tar")]
+        #extract_command = "tar -xvf " + download_file_name
     request.urlretrieve( download_link, download_file_name, show_progress )
-    os.system( extract_command )
+    if "Win" in SYSTEM_OS:
+        with ZipFile( download_file_name, 'r' ) as zip_file:
+            zip_file.extractall()
+    else:
+        with tarfile.open( download_file_name ) as tar_file:
+            tar_file.extractall( "./"+download_dir_name )
+            
+    os.remove( os.path.join( project_dir, download_file_name ) )
     TOOL_DIR = ""
     for item in os.listdir( project_dir ):
         if "arm" in item:
             TOOL_DIR = item
-    os.remove( os.path.join( project_dir, download_file_name ) )
 
     # Cloning the PICO SDK
     print()
