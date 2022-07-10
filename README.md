@@ -9,6 +9,7 @@ Following items must be preinstalled for running project builder and using the c
 * python3
 * cmake
 * git
+* Visual Studio (for windows)
 
 Except for the above requirements, no other setup steps are required. The projects created using this project builder contain all the required components - the SDK, the compiler toolchain etc.
 
@@ -29,6 +30,8 @@ python3 generate_pico_project.py
 ```
 
 That's it, you now have a basic pico project ready to be used for any kind of application development.
+
+**Use Visual Studio terminal for running the commands in windows**
 
 ## Project Directory Structure
 
